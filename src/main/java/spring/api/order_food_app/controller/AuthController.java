@@ -17,31 +17,32 @@ public class AuthController {
     @Autowired
     private IUserService userService;
 
-    // Đăng ký người dùng
+    // Đăng ký
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserDTO userDTO, @RequestParam String password) {
         try {
+            // Đăng ký người dùng
             UserDTO registeredUser = userService.registerUser(userDTO, password);
             return ResponseEntity.ok(registeredUser);
         } catch (Exception e) {
+            // Trả về lỗi nếu có vấn đề
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
     }
 
     // Đăng nhập
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestParam String email, @RequestParam String password) {
-        if (email == null || password == null || email.isBlank() || password.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Email và mật khẩu không được để trống"));
+    public ResponseEntity<?> login(@RequestParam String input, @RequestParam String password) {
+        if (input == null || password == null || input.isBlank() || password.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email/SĐT và mật khẩu không được để trống"));
         }
         try {
-            String userId = userService.loginUser(email, password);
+            String userId = userService.loginUser(input, password);
             return ResponseEntity.ok(Map.of("userId", userId));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
         }
     }
-
     // Lấy thông tin người dùng
     @GetMapping("/{userId}/profile")
     public ResponseEntity<?> getUserProfile(@PathVariable Long userId) {

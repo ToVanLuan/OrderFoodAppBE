@@ -1,6 +1,7 @@
 package spring.api.order_food_app.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -28,38 +29,68 @@ public class UserService implements IUserService {
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    @Override
     public UserDTO registerUser(UserDTO userDTO, String password) {
-        if (userRepository.findByEmail(userDTO.getEmail().trim()).isPresent()) {
-            throw new ResponseStatusException(BAD_REQUEST, "Email đã tồn tại!");
+        // ✨ Chuẩn hóa dữ liệu: nếu chuỗi rỗng -> gán null
+        String email = (userDTO.getEmail() != null && !userDTO.getEmail().trim().isEmpty()) ? userDTO.getEmail().trim() : null;
+        String phone = (userDTO.getPhoneNumber() != null && !userDTO.getPhoneNumber().trim().isEmpty()) ? userDTO.getPhoneNumber().trim() : null;
+
+        userDTO.setEmail(email);
+        userDTO.setPhoneNumber(phone);
+
+        // Kiểm tra nếu cả email và phoneNumber đều rỗng
+        if (email == null && phone == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Phải cung cấp ít nhất email hoặc số điện thoại!");
         }
 
+        // Kiểm tra nếu email đã tồn tại
+        if (email != null) {
+            if (userRepository.existsByEmail(email)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email đã tồn tại!");
+            }
+        }
+
+        // Kiểm tra nếu số điện thoại đã tồn tại
+        if (phone != null) {
+            if (userRepository.existsByPhoneNumber(phone)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Số điện thoại đã tồn tại!");
+            }
+        }
+
+        // Tạo và lưu người dùng
         User user = new User();
         user.setUsername(userDTO.getUsername());
         user.setPassword(passwordEncoder.encode(password));
-        user.setEmail(userDTO.getEmail());
+        user.setEmail(email);
         user.setAddress(userDTO.getAddress());
-        user.setPhoneNumber(userDTO.getPhoneNumber());
+        user.setPhoneNumber(phone);
+
+        if (!user.isValidRegistration()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Phải cung cấp ít nhất email hoặc số điện thoại!");
+        }
 
         User savedUser = userRepository.save(user);
 
-        // Gửi email chào mừng
-        sendEmail(userDTO.getEmail(), "Chào mừng đến với Order Food App!",
-                "<h3>Xin chào " + userDTO.getUsername() + ",</h3>" +
-                        "<p>Cảm ơn bạn đã đăng ký tài khoản tại Order Food App.</p>" +
-                        "<p>Chúc bạn có những trải nghiệm tuyệt vời!</p>");
+        // Gửi email nếu có
+        if (email != null) {
+            sendEmail(email, "Chào mừng đến với Order Food App!",
+                    "<h3>Xin chào " + userDTO.getUsername() + ",</h3>" +
+                            "<p>Cảm ơn bạn đã đăng ký tài khoản tại Order Food App.</p>" +
+                            "<p>Chúc bạn có những trải nghiệm tuyệt vời!</p>");
+        }
 
         return mapToDTO(savedUser);
     }
 
     @Override
-    public String loginUser(String email, String password) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResponseStatusException(UNAUTHORIZED, "Email hoặc mật khẩu không đúng!"));
+    public String loginUser(String input, String password) {
+        User user = userRepository.findByEmail(input)
+                .or(() -> userRepository.findByPhoneNumber(input))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email/SĐT hoặc mật khẩu không đúng!"));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new ResponseStatusException(UNAUTHORIZED, "Email hoặc mật khẩu không đúng!");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email/SĐT hoặc mật khẩu không đúng!");
         }
+
         return String.valueOf(user.getId());
     }
 
