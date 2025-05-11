@@ -17,5 +17,6 @@ public class FoodDTO {
     private double discountPercent;
     private String discountCode;
     private String description;
+    private Long idRestaurant;
 
 }

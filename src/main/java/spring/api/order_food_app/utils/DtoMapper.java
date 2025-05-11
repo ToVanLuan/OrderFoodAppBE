@@ -17,7 +17,8 @@ public class DtoMapper {
                 food.getImageUrls(),
                 0.0,
                 null,
-                food.getDescription()
+                food.getDescription(),
+                food.getRestaurant().getId()
         );
 
         // Kiểm tra xem có giảm giá không

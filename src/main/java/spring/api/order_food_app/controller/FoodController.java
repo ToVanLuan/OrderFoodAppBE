@@ -68,4 +68,14 @@ public class FoodController {
         foodService.deleteFood(id);
         return ResponseEntity.noContent().build();
     }
+    // 🔍 Tìm món ăn theo tên
+    @GetMapping("/search")
+    public ResponseEntity<List<FoodDTO>> searchFoods(@RequestParam String keyword) {
+        List<Food> results = foodService.searchFoodsByName(keyword);
+        List<FoodDTO> dtoResults = results.stream()
+                .map(DtoMapper::toFoodDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtoResults);
+    }
+
 }

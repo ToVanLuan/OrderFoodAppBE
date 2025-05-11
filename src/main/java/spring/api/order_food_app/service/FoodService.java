@@ -12,4 +12,6 @@ public interface FoodService {
     List<Food> getAllFoods();
     void deleteFood(Long id);
     Food updateFood(Long id, String name,String type, String description, Long restaurantId, List<MultipartFile> imageFiles) throws IOException;
+    List<Food> searchFoodsByName(String keyword);
+
 }

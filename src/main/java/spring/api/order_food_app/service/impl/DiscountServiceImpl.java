@@ -60,9 +60,9 @@ public class DiscountServiceImpl implements DiscountService {
     }
 
 
-    // Scheduled method to generate daily discounts at 9 AM every day
-//    @Scheduled(cron = "0 0 9 * * *")  // Cron expression: every day at 9:00 AM
-//    public void scheduleDailyDiscounts() {
-//        generateDailyDiscounts();
-//    }
+    // Scheduled method to generate daily discounts at 5 AM every day
+    @Scheduled(cron = "0 0 5 * * *")  // Cron expression: every day at 5:00 AM
+    public void scheduleDailyDiscounts() {
+        generateDailyDiscounts();
+    }
 }

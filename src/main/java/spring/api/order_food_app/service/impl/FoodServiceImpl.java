@@ -70,6 +70,11 @@ public class FoodServiceImpl implements FoodService {
         return foodRepository.save(food);
     }
     @Override
+    public List<Food> searchFoodsByName(String keyword) {
+        return foodRepository.findByNameContainingIgnoreCase(keyword);
+    }
+
+    @Override
     public Food updateFood(Long id, String name,String type, String description, Long restaurantId,  List<MultipartFile> imageFiles) throws IOException {
         Optional<Food> foodOpt = foodRepository.findById(id);
 
@@ -83,6 +88,7 @@ public class FoodServiceImpl implements FoodService {
         food.setName(name);
         food.setDescription(description);
         food.setType(type);
+
 
         // Tìm nhà hàng và danh mục
         Optional<Restaurant> restaurantOpt = restaurantRepository.findById(restaurantId);
