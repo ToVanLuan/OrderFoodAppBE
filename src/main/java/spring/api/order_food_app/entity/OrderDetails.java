@@ -9,25 +9,42 @@ import lombok.Setter;
 import java.io.Serializable;
 
 @Entity
+@NoArgsConstructor
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "order_details")
 public class OrderDetails {
+
     @EmbeddedId
     private OrderDetailId id;
 
     private double price;
     private int quantity;
 
+    @Column(name = "discount_code")
+    private String discountCode;
+
+
     @ManyToOne
-    @JoinColumn(name = "order_id", insertable = false, updatable = false)
+    @MapsId("orderId") // Map theo trường orderId của EmbeddedId
+    @JoinColumn(name = "order_id")
     private Order order;
 
     @ManyToOne
-    @JoinColumn(name = "food_id", insertable = false, updatable = false)
-    private Food food;
+    @JoinColumns({
+            @JoinColumn(name = "food_id", referencedColumnName = "food_id", insertable = false, updatable = false),
+            @JoinColumn(name = "size", referencedColumnName = "size", insertable = false, updatable = false)
+    })
+    private FoodSize foodSize;
+
+    @PrePersist
+    @PreUpdate
+    public void updateOrderTotalValue() {
+        if (order != null) {
+            order.updateTotalValue();  // Cập nhật lại tổng giá trị khi có thay đổi
+        }
+    }
 
     @Embeddable
     @Getter
@@ -35,12 +52,13 @@ public class OrderDetails {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class OrderDetailId implements Serializable {
-        @Column(name = "order_id")  // Ánh xạ tên cột cho orderId
+        @Column(name = "order_id")
         private Long orderId;
 
-        @Column(name = "food_id")  // Ánh xạ tên cột cho foodId
+        @Column(name = "food_id")
         private Long foodId;
 
-        private int size;
+        @Column(name = "size")
+        private String size; // sửa thành String vì size là S, M, L
     }
 }

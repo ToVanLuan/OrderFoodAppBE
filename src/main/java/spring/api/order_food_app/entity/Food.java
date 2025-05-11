@@ -22,6 +22,8 @@ public class Food {
 
     private String name;
     private String type;
+    private String discountCode;
+    private double discountPercent;
 
     // List of image URLs
     @ElementCollection
@@ -36,6 +38,13 @@ public class Food {
     @JoinColumn(name = "restaurant_id")
     @JsonBackReference
     private Restaurant restaurant;
+
+    @OneToMany(mappedBy = "food")
+    private List<FoodSize> foodSizes;
+
+    @OneToMany(mappedBy = "food")
+    private List<Discount> discounts;
+
 
 }
 
